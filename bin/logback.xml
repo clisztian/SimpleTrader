@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<timestamp key="bySecond" datePattern="yyyyMMdd-HHmmss"/>
+	
+	<property name="LOG_HOME" value="output" />
+	
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>${LOG_HOME}/pnloutput-${bySecond}.log</file>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				%d{yyyy-MM-dd HH:mm:ss},%msg%n
+			</Pattern>
+		</encoder>		
+	</appender>
+	
+	<logger name="ch.mdfa.simulator.BollingerBandSimulator" level="INFO">
+		<appender-ref ref="FILE" />
+	</logger>
+	
+</configuration>
+
