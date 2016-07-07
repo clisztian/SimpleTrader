@@ -120,4 +120,16 @@ public class BollingerBand {
 		return L;
 	}
 	
+	public double getLastMidBand() {
+		return MidBand.last().getValue();
+	}
+	
+	public double getLastUpperBand() {
+		return UpperBand.last().getValue();
+	}
+	
+	public double getLastLowBand() {
+		return LowBand.last().getValue();
+	}
+	
 }

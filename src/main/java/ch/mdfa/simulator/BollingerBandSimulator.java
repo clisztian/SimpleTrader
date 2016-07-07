@@ -3,7 +3,6 @@ package ch.mdfa.simulator;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,17 +22,12 @@ import ch.mdfa.signal.BollingerBand;
 
 public class BollingerBandSimulator {
 
-	long ONELOT = 100000;
-	
+	long ONELOT = 100000; 
 	BollingerBand signal;
-
 	double price; 
 	String date_stamp;
-	
 	double currentMasterSignal = 0;
 	double previousMasterSignal = 0;
-
-    ArrayList<Double> daily_returns = new ArrayList<Double>();
     private static final Logger LOGGER = LoggerFactory.getLogger("ch.mdfa.simulator.BollingerBandSimulator");
     
     
@@ -46,6 +40,8 @@ public class BollingerBandSimulator {
     	
     	/*Set data file name */
     	String dataFile = "data/EUR.USD.csv";
+    	
+    	/*Set BollingerBand Parameters in simulator */
     	BollingerBandSimulator bb30 = new BollingerBandSimulator("EURUSD", "BAND_30", BandLength, StDev);   	
     	
     	/*Simulate and print results to logger*/
@@ -59,10 +55,6 @@ public class BollingerBandSimulator {
     	signal = new BollingerBand(SecurityName, SignalName, L, sd);
     }
     
-    
-    
-    
-
 	
 	public void simulateStrategy(String dataFiles)
 	{
@@ -77,6 +69,7 @@ public class BollingerBandSimulator {
 		
 		try{
 			
+		 /* Read data market feed from CSV filer and it's headers*/	
 		 CsvReader marketDataFeed = new CsvReader(dataFiles);
 		 marketDataFeed.readHeaders();
 
@@ -84,13 +77,13 @@ public class BollingerBandSimulator {
 			 
 			double price = (new Double(marketDataFeed.get("close"))).doubleValue();
 			String date_stamp = marketDataFeed.get("ProductName");
-		    daily_returns.add(price);
-       
+		    
+            /* Compute new signal */
             previousMasterSignal = currentMasterSignal; 
       	    currentMasterSignal = signal.computeSignal(date_stamp, price);
       	    
-      	    if(currentMasterSignal != previousMasterSignal)
-      	    {
+      	    /* Handle signal entry/exit logic */
+      	    if(currentMasterSignal != previousMasterSignal) {
       	    	 
       	      if(currentMasterSignal > previousMasterSignal) { //Buy order
       	    	  order = new LimitOrder(Side.BUY, ONELOT, eurusd, bollinger, new BigDecimal(price));
@@ -100,26 +93,20 @@ public class BollingerBandSimulator {
       	    	  order = new LimitOrder(Side.SELL, ONELOT, eurusd, bollinger, new BigDecimal(price));
       	    	  simulator.sendOrder(order);
       	      }
-      	      if(currentMasterSignal == 0) { //liquidated position
-      	    	    
+      	      if(currentMasterSignal == 0) { //liquidate position    	    	    
       	    	    //log cash balance
       	    	    CashBalance bal = simulator.findCashBalanceByStrategyAndCurrency(bollinger.getName(), Currency.USD);
       	    		LOGGER.info(bal.toString());
       	      }
-       
-      	      //Log current position
+      	      /*Log current position*/
       	      Position position = simulator.findPositionByStrategyAndSecurity(bollinger.getName(), eurusd);
    	    	  LOGGER.info(position.toString());	
-
       	     }
       	      
            }
 		}
-	    catch (FileNotFoundException e) { e.printStackTrace(); } 
-		catch (IOException e) { e.printStackTrace(); }
-        
-        
+	    catch (FileNotFoundException e) { e.printStackTrace(); throw new RuntimeException(e); } 
+		catch (IOException e) { e.printStackTrace(); throw new RuntimeException(e);}
 	}
-		
-		
+	
 }
